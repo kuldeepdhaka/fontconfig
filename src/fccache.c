@@ -132,7 +132,7 @@ FcDirCacheUnlink (const FcChar8 *dir, FcConfig *config)
     list = FcStrListCreate (config->cacheDirs);
     if (!list)
         return FcFalse;
-	
+
     while ((cache_dir = FcStrListNext (list)))
     {
 	if (sysroot)
@@ -208,7 +208,7 @@ FcDirCacheProcess (FcConfig *config, const FcChar8 *dir,
     list = FcStrListCreate (config->cacheDirs);
     if (!list)
         return FcFalse;
-	
+
     while ((cache_dir = FcStrListNext (list)))
     {
         FcChar8	*cache_hashed;
@@ -385,7 +385,7 @@ FcCacheInsert (FcCache *cache, struct stat *cache_stat)
 	s->cache_ino = cache_stat->st_ino;
 	s->cache_mtime = cache_stat->st_mtime;
 #ifdef HAVE_STRUCT_STAT_ST_MTIM
-	s->cache_mtime_nano = cache_stat->st_mtim.tv_nsec;
+	s->cache_mtime_nano = cache_stat->st_mtime_nsec;
 #else
 	s->cache_mtime_nano = 0;
 #endif
@@ -484,7 +484,7 @@ FcCacheFindByStat (struct stat *cache_stat)
 	    s->cache_mtime == cache_stat->st_mtime)
 	{
 #ifdef HAVE_STRUCT_STAT_ST_MTIM
-	    if (s->cache_mtime != cache_stat->st_mtim.tv_nsec)
+	    if (s->cache_mtime != cache_stat->st_mtime_nsec)
 		continue;
 #endif
 	    FcRefInc (&s->ref);
@@ -574,10 +574,10 @@ FcCacheTimeValid (FcConfig *config, FcCache *cache, struct stat *dir_stat)
 	dir_stat = &dir_static;
     }
 #ifdef HAVE_STRUCT_STAT_ST_MTIM
-    fnano = (cache->checksum_nano == dir_stat->st_mtim.tv_nsec);
+    fnano = (cache->checksum_nano == dir_stat->st_mtime_nsec);
     if (FcDebug () & FC_DBG_CACHE)
 	printf ("FcCacheTimeValid dir \"%s\" cache checksum %d.%ld dir checksum %d.%ld\n",
-		FcCacheDir (cache), cache->checksum, (long)cache->checksum_nano, (int) dir_stat->st_mtime, dir_stat->st_mtim.tv_nsec);
+		FcCacheDir (cache), cache->checksum, (long)cache->checksum_nano, (int) dir_stat->st_mtime, dir_stat->st_mtime_nsec);
 #else
     if (FcDebug () & FC_DBG_CACHE)
 	printf ("FcCacheTimeValid dir \"%s\" cache checksum %d dir checksum %d\n",
@@ -700,7 +700,7 @@ FcDirCacheMapFd (FcConfig *config, int fd, struct stat *fd_stat, struct stat *di
     /* Mark allocated caches so they're freed rather than unmapped */
     if (allocated)
 	cache->magic = FC_CACHE_MAGIC_ALLOC;
-	
+
     return cache;
 }
 
@@ -781,7 +781,7 @@ FcDirCacheValidateHelper (FcConfig *config, int fd, struct stat *fd_stat, struct
     else if (c.checksum != (int) dir_stat->st_mtime)
 	ret = FcFalse;
 #ifdef HAVE_STRUCT_STAT_ST_MTIM
-    else if (c.checksum_nano != dir_stat->st_mtim.tv_nsec)
+    else if (c.checksum_nano != dir_stat->st_mtime_nsec)
 	ret = FcFalse;
 #endif
     return ret;
@@ -859,7 +859,7 @@ FcDirCacheBuild (FcFontSet *set, const FcChar8 *dir, struct stat *dir_stat, FcSt
     cache->size = serialize->size;
     cache->checksum = (int) dir_stat->st_mtime;
 #ifdef HAVE_STRUCT_STAT_ST_MTIM
-    cache->checksum_nano = dir_stat->st_mtim.tv_nsec;
+    cache->checksum_nano = dir_stat->st_mtime_nsec;
 #endif
 
     /*
@@ -1049,7 +1049,7 @@ FcDirCacheWrite (FcCache *cache, FcConfig *config)
 	    skip->cache_ino = cache_stat.st_ino;
 	    skip->cache_mtime = cache_stat.st_mtime;
 #ifdef HAVE_STRUCT_STAT_ST_MTIM
-	    skip->cache_mtime_nano = cache_stat.st_mtim.tv_nsec;
+	    skip->cache_mtime_nano = cache_stat.st_mtime_nsec;
 #else
 	    skip->cache_mtime_nano = 0;
 #endif
@@ -1275,7 +1275,7 @@ FcCacheCopySet args1(const FcCache *c)
     for (i = 0; i < old->nfont; i++)
     {
 	FcPattern   *font = FcFontSetFont (old, i);
-	
+
 	FcPatternReference (font);
 	if (!FcFontSetAdd (new, font))
 	{

@@ -29,7 +29,7 @@
 #include <config.h>
 #endif
 
-#include "fcstdint.h"
+#include <stdint.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -175,7 +175,7 @@ typedef struct _FcValueList {
 } FcValueList;
 
 #define FcValueListNext(vl)	FcPointerMember(vl,next,FcValueList)
-			
+
 typedef int FcObject;
 
 /* The 1024 is to leave some room for future added internal objects, such
@@ -214,7 +214,7 @@ struct _FcPattern {
 						      FcFontSetFonts(fs)[i], \
 						      FcPattern) : \
 				 fs->fonts[i])
-						
+
 typedef enum _FcOp {
     FcOpInteger, FcOpDouble, FcOpString, FcOpMatrix, FcOpRange, FcOpBool, FcOpCharSet, FcOpLangSet,
     FcOpNil,
